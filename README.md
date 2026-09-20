@@ -300,3 +300,8 @@ that picking by hand is worth the ten seconds.
 - Specials (season 0) are skipped unless Sonarr maps them itself.
 - Jackett's aggregate `all` endpoint can be slow and will time out individual
   indexers silently. Point `indexer` at a specific one if results look thin.
+
+## License
+
+GPL-3.0 — see [LICENSE](LICENSE). Copyright (c) 2026 RobertGonzales1.
+
