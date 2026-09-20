@@ -1,0 +1,159 @@
+# Copy to seriespack.ini and fill in. Keep it next to seriespack.py.
+
+[sonarr]
+url = http://sonarr-vm:8989
+# Settings -> General -> API Key
+api_key = PUT_YOUR_SONARR_API_KEY_HERE
+
+[jackett]
+url = http://jackett-vm:9117
+# top-right of the Jackett dashboard
+api_key = PUT_YOUR_JACKETT_API_KEY_HERE
+# "all" searches every configured indexer at once. You can also put a single
+# indexer id here (e.g. "torrentleech") to keep the noise down.
+indexer = all
+# 5000 = TV. Add 5070 if you want anime from indexers that file it separately.
+categories = 5000
+
+# Optional -- only needed for `hunt --movies`. Radarr grabs through its own
+# download client (even a different qBittorrent instance -- the script never
+# talks to it), so url + api_key is all hunt needs.
+# [radarr]
+# url = http://radarr-vm:7878
+# api_key = PUT_YOUR_RADARR_API_KEY_HERE
+
+[clean]
+# `clean` flags a download as dead when it has shown no activity for this long.
+stalled_hours = 24
+# ...or when it's still fetching metadata after this long.
+meta_hours = 1
+# `clean --seeded` flags finished seeds once EITHER limit is met. Mind your
+# private trackers' rules before lowering these.
+seed_ratio = 2.0
+seed_hours = 336
+# `clean --queues` removes+blocklists *arr queue items that finished
+# downloading but couldn't import for this many days.
+queue_stuck_days = 3
+
+[hunt]
+# How many missing episodes / movies to search per run. Small on purpose:
+# run it often (Task Scheduler) rather than big at once, and the indexers
+# never see a burst.
+tv_batch = 5
+movie_batch = 3
+# Days before the same item may be searched again.
+cooldown_days = 7
+# Pause between individual search commands within a run.
+delay_seconds = 5
+# A season missing at least this fraction of its aired episodes is hunted as
+# ONE SeasonSearch (can land a whole season pack) instead of per-episode
+# searches. Set above 1.0 to always hunt episode-by-episode.
+season_threshold = 0.8
+# A show with at least this many mostly-missing seasons is hunted as ONE
+# complete-series pack: Jackett search, auto-grab the best qualifying
+# release into the seriespacks category, and -- once downloaded -- import it
+# automatically IF every file maps cleanly (otherwise it's left for a manual
+# `import` run). 0 disables the pack tier.
+pack_min_seasons = 2
+# Series-pack grabs per hunt run. Each one is a multi-GB download.
+pack_batch = 1
+# Auto-import tolerates this fraction of unmapped files (they are simply
+# not imported; their episodes stay with the episode hunter). Conflicting
+# mappings always block. 0 = require a perfect mapping.
+pack_max_unmapped = 0.05
+# Quality-upgrade searches per run: items that HAVE a file but sit below
+# the quality profile cutoff (purple in Sonarr). The *arrs only ever grab
+# strict quality improvements on these, so there is no low-quality risk.
+# 0 disables.
+upgrade_tv_batch = 2
+upgrade_movie_batch = 1
+# Where pack grabs download.
+#   qbittorrent = the [qbittorrent] client (original behavior)
+#   seedbox     = the .torrent is dropped into pack_watch_dir on the
+#                 [seedbox] host; rutorrent's AutoLabel/AutoMove seed and
+#                 file it, `sync` delivers it to pack_import_dir, and
+#                 auto-import finishes from there. Add a [sync] mapping for
+#                 the packs label, and make sure [paths] can translate
+#                 pack_import_dir into a path Sonarr can open.
+pack_delivery = qbittorrent
+# pack_watch_dir = rwatch/packs
+# pack_import_dir = \\nas\Torrents\(0)Arr_Auto_Search\(2)Import\(0)SeriesPacks
+
+# Optional on a seedbox-only setup (pack_delivery = seedbox): leave url
+# blank and grab/status/clean's torrent checks are simply unavailable --
+# hunt, sync, import --folder, and clean --queues all work without it.
+[qbittorrent]
+url = http://qbit-vm:8080
+username = admin
+password = PUT_YOUR_QBIT_PASSWORD_HERE
+# IMPORTANT: this category must NOT be the one Sonarr watches. Keeping series
+# packs in their own category is what stops Sonarr's automatic completed-download
+# handling from grabbing them and importing only season 1.
+category = seriespacks
+# Optional. Leave blank to use qBittorrent's default save path.
+save_path =
+
+[paths]
+# Only needed when qBittorrent and Sonarr are on different machines.
+#
+# Left side  = the path as qBittorrent reports it, on the qBittorrent VM.
+# Right side = a path that Sonarr, on its own VM, can actually open.
+#
+# You almost certainly already have this pair written down: Sonarr ->
+# Settings -> Download Clients -> Remote Path Mappings. Copy the same two
+# values here (Remote Path on the left, Local Path on the right).
+#
+# Example:
+# D:\Torrents = T:\(0)Media\Torrents
+#
+# If both apps see the same path, delete or comment out everything here.
+#
+# Note: only '=' separates the two sides, so drive letters are safe. Do not
+# quote the paths and do not add a trailing backslash.
+
+# Optional -- only needed for `sync` (pull completed items from a seedbox).
+# Requires: pip install paramiko
+# [seedbox]
+# host = seed.example.net
+# port = 22
+# username = me
+# password = PUT_SEEDBOX_PASSWORD_HERE
+# # or leave password blank and use a key instead:
+# # key_file = C:\Users\me\.ssh\id_ed25519
+# # Staging MUST be on the same drive as the import folders below, so the
+# # final move is an atomic rename -- the *arrs never see a partial item.
+# staging = T:\(0)Filezilla\(1)SyncStaging
+# # Don't transfer sample files (a Sample/ folder or 'sample' in the name,
+# # AND smaller than sample_max_mb -- big files are never treated as samples).
+# skip_samples = true
+# sample_max_mb = 200
+# # Unpack .zip/.rar/.7z in staging before delivery -- Sonarr/Radarr can't
+# # import archives. Zip needs nothing; rar/7z need 7-Zip or WinRAR's UnRAR
+# # on the machine running sync (auto-detected in PATH and Program Files,
+# # or point unrar_tool at the exe).
+# extract = true
+# unrar_tool =
+# # After delivery, delete items from the import dirs once this old and no
+# # longer referenced by any *arr queue (imported or abandoned). 0 disables.
+# prune_days = 3
+
+# [sync]
+# # seedbox completed dir (per rtorrent label) = local import dir.
+# # One seedbox handles TV and movies fine -- separate them by label so each
+# # lands in its own completed dir.
+# /home/me/torrents/rtorrent/completed/tv = T:\(0)Filezilla\(2)Import\(0)TV
+# /home/me/torrents/rtorrent/completed/movies = T:\(0)Filezilla\(2)Import\(0)Movies
+
+[preferences]
+# Skip releases with fewer seeders than this.
+min_seeders = 3
+# Sanity ceiling -- a 900GB remux pack is probably not what you meant.
+max_size_gb = 400
+# Files smaller than this are treated as samples/extras and skipped.
+min_file_mb = 50
+# copy = leave the torrent in place so you keep seeding (respects Sonarr's
+#        "use hardlinks instead of copy" setting).
+# move = move the files into the library. Kills seeding. Don't, on a private tracker.
+import_mode = copy
+# Preference order, best first.
+quality_order = 1080p, 720p, 2160p

@@ -1,0 +1,4 @@
+seriespack.ini
+seriespack_state.json
+__pycache__/
+*.log
