@@ -1,4 +1,4 @@
-# seriespack
+# Arr Auto Search and Sync
 
 Grabs complete-series torrents and imports them into Sonarr — the thing Sonarr
 won't do on its own.
