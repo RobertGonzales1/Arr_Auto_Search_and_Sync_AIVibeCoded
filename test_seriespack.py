@@ -654,6 +654,7 @@ check("pack delivery config defaults",
        cfg_nohunt.hunt_pack_import_dir),
       ("qbittorrent", "rwatch/packs", ""))
 check("pack in-flight cap default", cfg_nohunt.hunt_pack_pending_max, 5)
+check("pack grab expiry default (days)", cfg_nohunt.hunt_pack_grab_days, 3.0)
 # minimal but real bencode: d4:infod6:lengthi5e4:name7:My.Packee
 TORRENT = b"d8:announce13:http://tr/ann4:infod6:lengthi5e4:name19:My.Pack.S01-S03.XyZee"
 check("torrent_name reads info.name", sp.torrent_name(TORRENT),

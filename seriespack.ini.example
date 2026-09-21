@@ -78,6 +78,13 @@ upgrade_movie_batch = 1
 pack_delivery = qbittorrent
 # pack_watch_dir = rwatch/packs
 # pack_import_dir = \\nas\Torrents\(0)Arr_Auto_Search\(2)Import\(0)SeriesPacks
+# No new pack grabs while this many are still downloading/importing (keeps
+# slow, rare torrents from piling up on the seedbox disk). 0 = unlimited.
+pack_pending_max = 5
+# A seedbox pack that hasn't arrived after this many days was probably
+# deleted on the seedbox -- give up its slot. Safe to keep short: if it
+# shows up later anyway it gets adopted and imported. 0 = never expire.
+pack_grab_days = 3
 
 # Optional on a seedbox-only setup (pack_delivery = seedbox): leave url
 # blank and grab/status/clean's torrent checks are simply unavailable --

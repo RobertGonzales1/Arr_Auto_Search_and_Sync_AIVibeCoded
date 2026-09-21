@@ -115,8 +115,11 @@ class Config:
         # 0 = unlimited
         self.hunt_pack_pending_max = int(self._get("hunt", "pack_pending_max", "5"))
         # a seedbox pack that hasn't arrived after this many days was
-        # probably deleted on the seedbox -- give up its slot (0 = never)
-        self.hunt_pack_grab_days = float(self._get("hunt", "pack_grab_days", "14"))
+        # probably deleted on the seedbox -- give up its slot (0 = never).
+        # Safe to keep short: if the item shows up later anyway, adoption
+        # re-claims and imports it, and the search cooldown prevents a
+        # duplicate grab meanwhile.
+        self.hunt_pack_grab_days = float(self._get("hunt", "pack_grab_days", "3"))
 
         self.jackett_url = self._get("jackett", "url").rstrip("/")
         self.jackett_key = self._get("jackett", "api_key")
